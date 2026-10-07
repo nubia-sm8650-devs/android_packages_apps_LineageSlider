@@ -31,6 +31,18 @@
         android:defaultToDeviceProtectedStorage="true"
         android:directBootAware="true">
 
+        <provider
+            android:name=".SliderSearchIndexablesProvider"
+            android:authorities="org.lineageos.slider"
+            android:multiprocess="false"
+            android:grantUriPermissions="true"
+            android:permission="android.permission.READ_SEARCH_INDEXABLES"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.content.action.SEARCH_INDEXABLES_PROVIDER" />
+            </intent-filter>
+        </provider>
+
         <activity
             android:name=".SliderSettingsActivity"
             android:label="@string/slider_settings_title"

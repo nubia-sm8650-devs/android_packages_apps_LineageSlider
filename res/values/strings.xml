@@ -6,11 +6,13 @@
 <resources>
     <string name="slider_settings_title">Slider</string>
     <string name="slider_enabled">Use slider</string>
+    <string name="slider_summary">Choose what the slider does</string>
     <string name="slider_enabled_left">Use left slider</string>
     <string name="slider_enabled_top">Use top slider</string>
     <string name="slider_enabled_right">Use right slider</string>
     <string name="slider_enabled_bottom">Use bottom slider</string>
     <string name="slider_enabled_numbered">Use slider %1$d</string>
+    <string name="slider_search_keywords">slider, switch, alert slider, ringer, silent, vibrate, do not disturb, flashlight</string>
     <string name="slider_show_dialog">Show an on-screen indicator</string>
     <string name="slider_indicator_target">%1$s (%2$s)</string>
 
