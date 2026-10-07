@@ -21,6 +21,7 @@ class SliderInstance(
     private val handler: Handler,
 ) {
     private val service = ISlider.DESCRIPTOR + "/" + name
+    private val lock = Any()
 
     @Volatile private var lastPosition = -1
     @Volatile private var config: Config? = null
@@ -31,9 +32,16 @@ class SliderInstance(
     private val callback =
         object : ISliderCallback.Stub() {
             override fun onPositionChanged(position: Int) {
-                lastPosition = position
+                // Registering delivers the current position, so a report that
+                // leaves it alone re-asserts state rather than announcing a move.
+                val restore =
+                    synchronized(lock) {
+                        val same = position == lastPosition
+                        lastPosition = position
+                        same
+                    }
                 app.onPositionChanged(name, position)
-                applyPosition(position)
+                applyPosition(position, restore)
             }
 
             override fun getInterfaceVersion() = ISliderCallback.VERSION
@@ -76,9 +84,11 @@ class SliderInstance(
             binder.linkToDeath(deathRecipient, 0)
             val service = ISlider.Stub.asInterface(binder)
             val description = service.sliderInfo
+            val position = service.position
             config = Config(app, name, description.positionCount)
+            lastPosition = position
             service.registerCallback(callback)
-            Log.i(TAG, "connected $name, positions=${description.positionCount}")
+            Log.i(TAG, "connected $name, positions=${description.positionCount}, at $position")
         } catch (e: Exception) {
             Log.e(TAG, "connect $name failed, retrying", e)
             runCatching { binder.unlinkToDeath(deathRecipient, 0) }
@@ -86,13 +96,17 @@ class SliderInstance(
         }
     }
 
-    private fun applyPosition(position: Int) {
+    private fun applyPosition(position: Int, restore: Boolean) {
         val actions = actions ?: return
         val config = config ?: return
         if (!config.enabled) {
             return
         }
         val action = config.actionForPosition(position)
+        if (restore && !Action.isStateful(action)) {
+            Log.i(TAG, "$name position=$position holds one-shot action $action, not applying")
+            return
+        }
         Log.i(TAG, "$name position=$position action=$action")
         actions.apply(action)
     }
