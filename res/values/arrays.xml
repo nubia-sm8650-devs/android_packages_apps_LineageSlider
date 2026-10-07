@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The LineageOS Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+<resources>
+    <string-array name="action_entries" translatable="false">
+        <item>@string/action_none</item>
+        <item>@string/action_ring</item>
+        <item>@string/action_vibrate</item>
+        <item>@string/action_silent</item>
+        <item>@string/action_dnd_priority</item>
+        <item>@string/action_dnd_total</item>
+        <item>@string/action_dnd_alarms</item>
+    </string-array>
+
+    <string-array name="action_values" translatable="false">
+        <item>-1</item>
+        <item>2</item>
+        <item>1</item>
+        <item>0</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </string-array>
+</resources>
