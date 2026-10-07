@@ -5,12 +5,16 @@
 
 package org.lineageos.slider
 
+import android.app.Activity
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.ServiceManager
 import android.view.View
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
@@ -24,6 +28,7 @@ import vendor.lineage.slider.ISlider
 import vendor.lineage.slider.SliderInfo
 
 class SliderSettingsFragment : SettingsBasePreferenceFragment() {
+    private var pendingTargetKey: String? = null
     private val rows = mutableMapOf<String, List<ActionPreference>>()
     private val handler = Handler(Looper.getMainLooper())
 
@@ -33,6 +38,21 @@ class SliderSettingsFragment : SettingsBasePreferenceFragment() {
         handler.post { mark(instance, position) }
         Unit
     }
+
+    private val pickActivity =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val key = pendingTargetKey ?: return@registerForActivityResult
+            pendingTargetKey = null
+
+            if (result.resultCode != Activity.RESULT_OK) {
+                return@registerForActivityResult
+            }
+
+            val component = result.data?.component ?: return@registerForActivityResult
+            val target = component.flattenToShortString()
+            preferenceManager.preferenceDataStore?.putString(key, target)
+            findPreference<Preference>(key)?.summary = targetLabel(target)
+        }
 
     override fun onStart() {
         super.onStart()
@@ -50,7 +70,13 @@ class SliderSettingsFragment : SettingsBasePreferenceFragment() {
         rows[instance]?.forEachIndexed { index, pref -> pref.active = index == position }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(KEY_PENDING_TARGET, pendingTargetKey)
+    }
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+        pendingTargetKey = savedInstanceState?.getString(KEY_PENDING_TARGET)
         preferenceManager.preferenceDataStore = Config.Store(preferenceManager.context)
         val screen = preferenceManager.createPreferenceScreen(preferenceManager.context)
 
@@ -110,6 +136,7 @@ class SliderSettingsFragment : SettingsBasePreferenceFragment() {
         val actionValues = offered.map { allValues[it] }.toTypedArray()
         val positionPrefs = mutableListOf<ActionPreference>()
         val positionGroups = mutableListOf<PreferenceCategory>()
+        val perPosition = mutableListOf<PositionPrefs>()
 
         // A row reads its stored value when it is added, so the group it goes
         // in has to be on the screen first.
@@ -138,6 +165,21 @@ class SliderSettingsFragment : SettingsBasePreferenceFragment() {
                 }
             group.addPreference(actionPref)
             positionPrefs.add(actionPref)
+
+            val appPref =
+                Preference(context).apply {
+                    key = "$name/position_$position/app"
+                    title = getString(R.string.position_app_title)
+                    summary = targetLabel(config.target(position))
+                    setOnPreferenceClickListener {
+                        pendingTargetKey = it.key
+                        pickActivity.launch(pickIntent(getString(R.string.position_app_pick)))
+                        true
+                    }
+                }
+            group.addPreference(appPref)
+
+            perPosition.add(PositionPrefs(appPref))
         }
 
         // A preset's actions come from its table rather than from what a row
@@ -161,6 +203,11 @@ class SliderSettingsFragment : SettingsBasePreferenceFragment() {
                     pref.summaryProvider = null
                     pref.summary = Action.label(context, actionAt(preset, position))
                 }
+            }
+            perPosition.forEachIndexed { position, prefs ->
+                val action = actionAt(preset, position)
+                prefs.app.isVisible = action == Action.LAUNCH_APP
+                prefs.app.isEnabled = enabled
             }
         }
 
@@ -242,6 +289,27 @@ class SliderSettingsFragment : SettingsBasePreferenceFragment() {
         }
     }
 
+    private fun pickIntent(title: String) =
+        Intent(Intent.ACTION_PICK_ACTIVITY)
+            .putExtra(Intent.EXTRA_TITLE, title)
+            .putExtra(
+                Intent.EXTRA_INTENT,
+                Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER),
+            )
+
+    private fun targetLabel(target: String?): String {
+        if (target.isNullOrEmpty()) {
+            return getString(R.string.position_app_none)
+        }
+
+        val component = ComponentName.unflattenFromString(target) ?: return target
+        val packageManager = preferenceManager.context.packageManager
+        return runCatching {
+                packageManager.getActivityInfo(component, 0).loadLabel(packageManager).toString()
+            }
+            .getOrDefault(target)
+    }
+
     // Marking a position toggles the badge's visibility rather than swapping
     // the widget layout, so a row keeps its view type.
     private class ActionPreference(context: Context) : ListPreference(context) {
@@ -262,5 +330,12 @@ class SliderSettingsFragment : SettingsBasePreferenceFragment() {
             super.onBindViewHolder(holder)
             holder.findViewById(R.id.active)?.visibility = if (active) View.VISIBLE else View.GONE
         }
+    }
+
+    private class PositionPrefs(val app: Preference)
+
+    companion object {
+        private const val KEY_PENDING_TARGET = "pending_target"
+        private const val PLATFORM_PACKAGE = "android"
     }
 }

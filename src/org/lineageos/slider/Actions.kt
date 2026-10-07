@@ -66,6 +66,7 @@ object Action {
     const val MEDIA_PLAY = 27
     const val NIGHT_LIGHT_ON = 28
     const val NIGHT_LIGHT_OFF = 29
+    const val LAUNCH_APP = 30
 
     // Actions that happen once rather than selecting a state. TORCH_ON is
     // one, since a flashlight lighting itself at boot is not a held state.
@@ -78,6 +79,7 @@ object Action {
             LAUNCH_ASSISTANT,
             MEDIA_PAUSE,
             MEDIA_PLAY,
+            LAUNCH_APP,
         )
 
     fun isStateful(action: Int) = action !in ONE_SHOT
@@ -211,7 +213,7 @@ class Actions(private val context: Context) {
     private val voiceRecorder = VoiceRecorder(context)
     private val handler = Handler(Looper.getMainLooper())
 
-    fun apply(action: Int) {
+    fun apply(action: Int, target: String? = null) {
         // A choice outlives the restriction that takes it away, so what the
         // screen stopped offering is also refused here.
         if (Action.isRestricted(context, action)) {
@@ -220,14 +222,14 @@ class Actions(private val context: Context) {
         }
 
         try {
-            dispatch(action)
+            dispatch(action, target)
         } catch (e: Exception) {
             Log.e(TAG, "action $action failed", e)
             reportFailure(action)
         }
     }
 
-    private fun dispatch(action: Int) {
+    private fun dispatch(action: Int, target: String?) {
         when (action) {
             Action.NONE -> return
             // The filter and the ringer mode are two writes, so a failure on
@@ -270,6 +272,7 @@ class Actions(private val context: Context) {
             Action.MEDIA_PLAY -> sendMediaKey(KeyEvent.KEYCODE_MEDIA_PLAY)
             Action.NIGHT_LIGHT_ON -> requireColorDisplay().setNightDisplayActivated(true)
             Action.NIGHT_LIGHT_OFF -> requireColorDisplay().setNightDisplayActivated(false)
+            Action.LAUNCH_APP -> launchApp(target)
         }
     }
 
@@ -338,10 +341,33 @@ class Actions(private val context: Context) {
         manager.launchAssist(null)
     }
 
+    // A target is a flattened component, or a bare package name.
+    private fun launchApp(target: String?) {
+        if (target.isNullOrEmpty()) {
+            error("no app chosen")
+        }
+        val userId = ActivityManager.getCurrentUser()
+        launch(appIntent(target, userId) ?: error("$target cannot be launched"), userId)
+    }
+
     // A package installed for the user the app is started for is not one
     // installed for the user this process belongs to.
     private fun packagesFor(userId: Int) =
         context.createContextAsUser(UserHandle.of(userId), 0).packageManager
+
+    private fun appIntent(target: String, userId: Int): Intent? {
+        val packageManager = packagesFor(userId)
+        val component =
+            ComponentName.unflattenFromString(target)
+                ?: return packageManager.getLaunchIntentForPackage(target)
+
+        val intent =
+            Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER).setComponent(component)
+        if (packageManager.resolveActivity(intent, 0) != null) {
+            return intent
+        }
+        return packageManager.getLaunchIntentForPackage(component.packageName)
+    }
 
     // Every start the platform resolves gets MATCH_DEFAULT_ONLY, which drops a
     // launcher filter that does not name CATEGORY_DEFAULT, so naming the
