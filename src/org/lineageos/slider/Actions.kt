@@ -7,6 +7,7 @@ package org.lineageos.slider
 
 import android.app.ActivityManager
 import android.app.NotificationManager
+import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -42,6 +43,8 @@ object Action {
     const val AIRPLANE_OFF = 13
     const val WIFI_ON = 14
     const val WIFI_OFF = 15
+    const val BLUETOOTH_ON = 16
+    const val BLUETOOTH_OFF = 17
 
     // Actions that happen once rather than selecting a state. TORCH_ON is
     // one, since a flashlight lighting itself at boot is not a held state.
@@ -60,6 +63,8 @@ object Action {
             AIRPLANE_OFF -> UserManager.DISALLOW_AIRPLANE_MODE
             WIFI_ON,
             WIFI_OFF -> UserManager.DISALLOW_CHANGE_WIFI_STATE
+            BLUETOOTH_ON,
+            BLUETOOTH_OFF -> UserManager.DISALLOW_CONFIG_BLUETOOTH
             else -> null
         }
 
@@ -80,6 +85,8 @@ object Action {
             VOICE_RECORD_STOP -> PackageManager.FEATURE_MICROPHONE
             WIFI_ON,
             WIFI_OFF -> PackageManager.FEATURE_WIFI
+            BLUETOOTH_ON,
+            BLUETOOTH_OFF -> PackageManager.FEATURE_BLUETOOTH
             else -> null
         }
 
@@ -127,6 +134,7 @@ class Actions(private val context: Context) {
     private val cameraManager = context.getSystemService(CameraManager::class.java)
     private val wifiManager = context.getSystemService(WifiManager::class.java)
     private val connectivityManager = context.getSystemService(ConnectivityManager::class.java)
+    private val bluetoothAdapter = context.getSystemService(BluetoothManager::class.java)?.adapter
     private val voiceRecorder = VoiceRecorder(context)
     private val handler = Handler(Looper.getMainLooper())
 
@@ -175,6 +183,8 @@ class Actions(private val context: Context) {
             Action.AIRPLANE_OFF -> requireConnectivity().setAirplaneMode(false)
             Action.WIFI_ON -> setWifi(true)
             Action.WIFI_OFF -> setWifi(false)
+            Action.BLUETOOTH_ON -> setBluetooth(true)
+            Action.BLUETOOTH_OFF -> setBluetooth(false)
         }
     }
 
@@ -192,6 +202,8 @@ class Actions(private val context: Context) {
 
     private fun requireWifi() = wifiManager ?: error("no Wi-Fi on this device")
 
+    private fun requireBluetooth() = bluetoothAdapter ?: error("no Bluetooth on this device")
+
     private fun requireConnectivity() = connectivityManager ?: error("no ConnectivityManager")
 
     private fun setTorch(enabled: Boolean) {
@@ -204,6 +216,14 @@ class Actions(private val context: Context) {
     private fun setWifi(enabled: Boolean) {
         if (!requireWifi().setWifiEnabled(enabled)) {
             error("Wi-Fi refused the change")
+        }
+    }
+
+    private fun setBluetooth(enabled: Boolean) {
+        val adapter = requireBluetooth()
+        val changed = if (enabled) adapter.enable() else adapter.disable()
+        if (!changed) {
+            error("Bluetooth refused the change")
         }
     }
 
