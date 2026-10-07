@@ -20,6 +20,7 @@
     <string name="preset_wifi">Wi-Fi</string>
     <string name="preset_bluetooth">Bluetooth</string>
     <string name="preset_mobile_data">Mobile data</string>
+    <string name="preset_auto_rotate">Auto-rotate</string>
     <string name="preset_custom">Custom</string>
 
     <string name="position_off">Off position</string>
@@ -51,4 +52,6 @@
     <string name="action_bluetooth_off">Turn off Bluetooth</string>
     <string name="action_mobile_data_on">Turn on mobile data</string>
     <string name="action_mobile_data_off">Turn off mobile data</string>
+    <string name="action_auto_rotate_on">Turn on auto-rotate</string>
+    <string name="action_auto_rotate_off">Turn off auto-rotate</string>
 </resources>

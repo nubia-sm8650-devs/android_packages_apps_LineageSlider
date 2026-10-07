@@ -26,6 +26,8 @@
         <item>@string/action_bluetooth_off</item>
         <item>@string/action_mobile_data_on</item>
         <item>@string/action_mobile_data_off</item>
+        <item>@string/action_auto_rotate_on</item>
+        <item>@string/action_auto_rotate_off</item>
     </string-array>
 
     <string-array name="action_values" translatable="false">
@@ -50,5 +52,7 @@
         <item>17</item>
         <item>18</item>
         <item>19</item>
+        <item>20</item>
+        <item>21</item>
     </string-array>
 </resources>
