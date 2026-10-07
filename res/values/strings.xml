@@ -35,6 +35,8 @@
     <string name="position_app_title">App</string>
     <string name="position_app_pick">Choose an app</string>
     <string name="position_app_none">Not set</string>
+    <string name="position_category_title">App category</string>
+    <string name="position_category_summary">%1$s (%2$s)</string>
 
     <string name="action_failed">Couldn\'t run “%1$s”</string>
     <string name="action_none">Do nothing</string>
@@ -65,8 +67,20 @@
     <string name="action_launch_camera">Open camera</string>
     <string name="action_launch_assistant">Open assistant</string>
     <string name="action_launch_app">Open an app</string>
+    <string name="action_launch_default_app">Open a default app</string>
     <string name="action_media_pause">Pause media</string>
     <string name="action_media_play">Resume media</string>
     <string name="action_night_light_on">Turn on night light</string>
     <string name="action_night_light_off">Turn off night light</string>
+
+    <string name="app_category_browser">Browser</string>
+    <string name="app_category_calculator">Calculator</string>
+    <string name="app_category_calendar">Calendar</string>
+    <string name="app_category_contacts">Contacts</string>
+    <string name="app_category_email">Email</string>
+    <string name="app_category_files">Files</string>
+    <string name="app_category_gallery">Gallery</string>
+    <string name="app_category_maps">Maps</string>
+    <string name="app_category_messaging">Messaging</string>
+    <string name="app_category_music">Music</string>
 </resources>

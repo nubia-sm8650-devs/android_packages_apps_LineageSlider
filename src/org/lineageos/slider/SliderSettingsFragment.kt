@@ -134,6 +134,13 @@ class SliderSettingsFragment : SettingsBasePreferenceFragment() {
             }
         val actionEntries = offered.map { allEntries[it] }.toTypedArray()
         val actionValues = offered.map { allValues[it] }.toTypedArray()
+        val allCategories = resources.getStringArray(R.array.app_category_values)
+        val handled = allCategories.indices.filter { handlesCategory(allCategories[it]) }
+        val categoryEntries =
+            handled
+                .map { resources.getStringArray(R.array.app_category_entries)[it] }
+                .toTypedArray()
+        val categoryValues = handled.map { allCategories[it] }.toTypedArray()
         val positionPrefs = mutableListOf<ActionPreference>()
         val positionGroups = mutableListOf<PreferenceCategory>()
         val perPosition = mutableListOf<PositionPrefs>()
@@ -179,7 +186,24 @@ class SliderSettingsFragment : SettingsBasePreferenceFragment() {
                 }
             group.addPreference(appPref)
 
-            perPosition.add(PositionPrefs(appPref))
+            val categoryPref =
+                ListPreference(context).apply {
+                    key = "$name/position_$position/category"
+                    title = getString(R.string.position_category_title)
+                    entries = categoryEntries
+                    entryValues = categoryValues
+                    setDefaultValue(categoryValues.first())
+                    summaryProvider =
+                        Preference.SummaryProvider<ListPreference> { pref ->
+                            val label = pref.entry ?: pref.value
+                            categoryHandler(pref.value)?.let {
+                                getString(R.string.position_category_summary, label, it)
+                            } ?: label
+                        }
+                }
+            group.addPreference(categoryPref)
+
+            perPosition.add(PositionPrefs(appPref, categoryPref))
         }
 
         // A preset's actions come from its table rather than from what a row
@@ -208,6 +232,8 @@ class SliderSettingsFragment : SettingsBasePreferenceFragment() {
                 val action = actionAt(preset, position)
                 prefs.app.isVisible = action == Action.LAUNCH_APP
                 prefs.app.isEnabled = enabled
+                prefs.category.isVisible = action == Action.LAUNCH_DEFAULT_APP
+                prefs.category.isEnabled = enabled
             }
         }
 
@@ -289,6 +315,28 @@ class SliderSettingsFragment : SettingsBasePreferenceFragment() {
         }
     }
 
+    // The app a category opens right now, which is nothing while several
+    // handle it and the user has picked no default.
+    private fun categoryHandler(category: String?): String? {
+        if (category.isNullOrEmpty()) {
+            return null
+        }
+        val packageManager = preferenceManager.context.packageManager
+        val intent = Intent.makeMainSelectorActivity(Intent.ACTION_MAIN, category)
+        val resolved = packageManager.resolveActivity(intent, 0)?.activityInfo ?: return null
+        if (resolved.packageName == PLATFORM_PACKAGE) {
+            return null
+        }
+        return resolved.loadLabel(packageManager).toString()
+    }
+
+    // A category nothing on the device handles is a position that would do
+    // nothing, so it is not offered as one.
+    private fun handlesCategory(category: String) =
+        preferenceManager.context.packageManager
+            .queryIntentActivities(Intent(Intent.ACTION_MAIN).addCategory(category), 0)
+            .isNotEmpty()
+
     private fun pickIntent(title: String) =
         Intent(Intent.ACTION_PICK_ACTIVITY)
             .putExtra(Intent.EXTRA_TITLE, title)
@@ -332,7 +380,7 @@ class SliderSettingsFragment : SettingsBasePreferenceFragment() {
         }
     }
 
-    private class PositionPrefs(val app: Preference)
+    private class PositionPrefs(val app: Preference, val category: ListPreference)
 
     companion object {
         private const val KEY_PENDING_TARGET = "pending_target"
