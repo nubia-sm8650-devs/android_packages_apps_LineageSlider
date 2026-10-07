@@ -22,6 +22,7 @@ import android.os.PowerManager
 import android.os.UserHandle
 import android.os.UserManager
 import android.os.Vibrator
+import android.telephony.TelephonyManager
 import android.util.Log
 import android.widget.Toast
 
@@ -45,6 +46,8 @@ object Action {
     const val WIFI_OFF = 15
     const val BLUETOOTH_ON = 16
     const val BLUETOOTH_OFF = 17
+    const val MOBILE_DATA_ON = 18
+    const val MOBILE_DATA_OFF = 19
 
     // Actions that happen once rather than selecting a state. TORCH_ON is
     // one, since a flashlight lighting itself at boot is not a held state.
@@ -65,6 +68,8 @@ object Action {
             WIFI_OFF -> UserManager.DISALLOW_CHANGE_WIFI_STATE
             BLUETOOTH_ON,
             BLUETOOTH_OFF -> UserManager.DISALLOW_CONFIG_BLUETOOTH
+            MOBILE_DATA_ON,
+            MOBILE_DATA_OFF -> UserManager.DISALLOW_CONFIG_MOBILE_NETWORKS
             else -> null
         }
 
@@ -87,6 +92,8 @@ object Action {
             WIFI_OFF -> PackageManager.FEATURE_WIFI
             BLUETOOTH_ON,
             BLUETOOTH_OFF -> PackageManager.FEATURE_BLUETOOTH
+            MOBILE_DATA_ON,
+            MOBILE_DATA_OFF -> PackageManager.FEATURE_TELEPHONY_DATA
             else -> null
         }
 
@@ -133,6 +140,7 @@ class Actions(private val context: Context) {
     private val powerManager = context.getSystemService(PowerManager::class.java)!!
     private val cameraManager = context.getSystemService(CameraManager::class.java)
     private val wifiManager = context.getSystemService(WifiManager::class.java)
+    private val telephonyManager = context.getSystemService(TelephonyManager::class.java)
     private val connectivityManager = context.getSystemService(ConnectivityManager::class.java)
     private val bluetoothAdapter = context.getSystemService(BluetoothManager::class.java)?.adapter
     private val voiceRecorder = VoiceRecorder(context)
@@ -185,6 +193,8 @@ class Actions(private val context: Context) {
             Action.WIFI_OFF -> setWifi(false)
             Action.BLUETOOTH_ON -> setBluetooth(true)
             Action.BLUETOOTH_OFF -> setBluetooth(false)
+            Action.MOBILE_DATA_ON -> requireTelephony().setDataEnabled(true)
+            Action.MOBILE_DATA_OFF -> requireTelephony().setDataEnabled(false)
         }
     }
 
@@ -203,6 +213,8 @@ class Actions(private val context: Context) {
     private fun requireWifi() = wifiManager ?: error("no Wi-Fi on this device")
 
     private fun requireBluetooth() = bluetoothAdapter ?: error("no Bluetooth on this device")
+
+    private fun requireTelephony() = telephonyManager ?: error("no telephony on this device")
 
     private fun requireConnectivity() = connectivityManager ?: error("no ConnectivityManager")
 

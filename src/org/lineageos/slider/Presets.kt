@@ -22,6 +22,7 @@ object Presets {
     const val AIRPLANE = "airplane"
     const val WIFI = "wifi"
     const val BLUETOOTH = "bluetooth"
+    const val MOBILE_DATA = "mobile_data"
     const val CUSTOM = "custom"
 
     private val LABELS =
@@ -32,6 +33,7 @@ object Presets {
             AIRPLANE to R.string.preset_airplane,
             WIFI to R.string.preset_wifi,
             BLUETOOTH to R.string.preset_bluetooth,
+            MOBILE_DATA to R.string.preset_mobile_data,
             CUSTOM to R.string.preset_custom,
         )
 
@@ -101,6 +103,7 @@ object Presets {
             AIRPLANE to toggle(count, Action.AIRPLANE_OFF, Action.AIRPLANE_ON),
             WIFI to toggle(count, Action.WIFI_OFF, Action.WIFI_ON),
             BLUETOOTH to toggle(count, Action.BLUETOOTH_OFF, Action.BLUETOOTH_ON),
+            MOBILE_DATA to toggle(count, Action.MOBILE_DATA_OFF, Action.MOBILE_DATA_ON),
         )
 
     // Repeating "off" has to be harmless, which holds for a state but not for
