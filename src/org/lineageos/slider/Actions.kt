@@ -29,6 +29,7 @@ import android.provider.MediaStore
 import android.provider.Settings
 import android.telephony.TelephonyManager
 import android.util.Log
+import android.view.KeyEvent
 import android.widget.Toast
 import com.android.internal.view.RotationPolicy
 
@@ -60,11 +61,21 @@ object Action {
     const val LOCATION_OFF = 23
     const val LAUNCH_CAMERA = 24
     const val LAUNCH_ASSISTANT = 25
+    const val MEDIA_PAUSE = 26
+    const val MEDIA_PLAY = 27
 
     // Actions that happen once rather than selecting a state. TORCH_ON is
     // one, since a flashlight lighting itself at boot is not a held state.
     private val ONE_SHOT =
-        setOf(TORCH_ON, VOICE_RECORD_START, VOICE_RECORD_STOP, LAUNCH_CAMERA, LAUNCH_ASSISTANT)
+        setOf(
+            TORCH_ON,
+            VOICE_RECORD_START,
+            VOICE_RECORD_STOP,
+            LAUNCH_CAMERA,
+            LAUNCH_ASSISTANT,
+            MEDIA_PAUSE,
+            MEDIA_PLAY,
+        )
 
     fun isStateful(action: Int) = action !in ONE_SHOT
 
@@ -248,6 +259,8 @@ class Actions(private val context: Context) {
             Action.LOCATION_OFF -> setLocation(false)
             Action.LAUNCH_CAMERA -> launch(Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA))
             Action.LAUNCH_ASSISTANT -> launchAssist()
+            Action.MEDIA_PAUSE -> sendMediaKey(KeyEvent.KEYCODE_MEDIA_PAUSE)
+            Action.MEDIA_PLAY -> sendMediaKey(KeyEvent.KEYCODE_MEDIA_PLAY)
         }
     }
 
@@ -299,6 +312,11 @@ class Actions(private val context: Context) {
     private fun setLocation(enabled: Boolean) {
         val manager = locationManager ?: error("no location on this device")
         manager.setLocationEnabledForUser(enabled, UserHandle.of(ActivityManager.getCurrentUser()))
+    }
+
+    private fun sendMediaKey(keyCode: Int) {
+        audioManager.dispatchMediaKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
+        audioManager.dispatchMediaKeyEvent(KeyEvent(KeyEvent.ACTION_UP, keyCode))
     }
 
     // An activity intent does not reach a VoiceInteractionService, and

@@ -25,6 +25,7 @@ object Presets {
     const val MOBILE_DATA = "mobile_data"
     const val AUTO_ROTATE = "auto_rotate"
     const val LOCATION = "location"
+    const val MEDIA = "media"
     const val CUSTOM = "custom"
 
     private val LABELS =
@@ -38,6 +39,7 @@ object Presets {
             MOBILE_DATA to R.string.preset_mobile_data,
             AUTO_ROTATE to R.string.preset_auto_rotate,
             LOCATION to R.string.preset_location,
+            MEDIA to R.string.preset_media,
             CUSTOM to R.string.preset_custom,
         )
 
@@ -110,6 +112,7 @@ object Presets {
             MOBILE_DATA to toggle(count, Action.MOBILE_DATA_OFF, Action.MOBILE_DATA_ON),
             AUTO_ROTATE to toggle(count, Action.AUTO_ROTATE_OFF, Action.AUTO_ROTATE_ON),
             LOCATION to toggle(count, Action.LOCATION_OFF, Action.LOCATION_ON),
+            MEDIA to pair(count, Action.MEDIA_PAUSE, Action.MEDIA_PLAY),
         )
 
     // Repeating "off" has to be harmless, which holds for a state but not for
