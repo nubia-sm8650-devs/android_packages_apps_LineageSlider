@@ -26,6 +26,7 @@ object Presets {
     const val AUTO_ROTATE = "auto_rotate"
     const val LOCATION = "location"
     const val MEDIA = "media"
+    const val NIGHT_LIGHT = "night_light"
     const val CUSTOM = "custom"
 
     private val LABELS =
@@ -40,6 +41,7 @@ object Presets {
             AUTO_ROTATE to R.string.preset_auto_rotate,
             LOCATION to R.string.preset_location,
             MEDIA to R.string.preset_media,
+            NIGHT_LIGHT to R.string.preset_night_light,
             CUSTOM to R.string.preset_custom,
         )
 
@@ -113,6 +115,7 @@ object Presets {
             AUTO_ROTATE to toggle(count, Action.AUTO_ROTATE_OFF, Action.AUTO_ROTATE_ON),
             LOCATION to toggle(count, Action.LOCATION_OFF, Action.LOCATION_ON),
             MEDIA to pair(count, Action.MEDIA_PAUSE, Action.MEDIA_PLAY),
+            NIGHT_LIGHT to toggle(count, Action.NIGHT_LIGHT_OFF, Action.NIGHT_LIGHT_ON),
         )
 
     // Repeating "off" has to be harmless, which holds for a state but not for
