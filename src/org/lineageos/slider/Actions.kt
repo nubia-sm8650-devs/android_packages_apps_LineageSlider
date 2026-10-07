@@ -8,6 +8,7 @@ package org.lineageos.slider
 import android.app.ActivityManager
 import android.app.NotificationManager
 import android.bluetooth.BluetoothManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -23,6 +24,7 @@ import android.os.PowerManager
 import android.os.UserHandle
 import android.os.UserManager
 import android.os.Vibrator
+import android.provider.MediaStore
 import android.telephony.TelephonyManager
 import android.util.Log
 import android.widget.Toast
@@ -54,10 +56,11 @@ object Action {
     const val AUTO_ROTATE_OFF = 21
     const val LOCATION_ON = 22
     const val LOCATION_OFF = 23
+    const val LAUNCH_CAMERA = 24
 
     // Actions that happen once rather than selecting a state. TORCH_ON is
     // one, since a flashlight lighting itself at boot is not a held state.
-    private val ONE_SHOT = setOf(TORCH_ON, VOICE_RECORD_START, VOICE_RECORD_STOP)
+    private val ONE_SHOT = setOf(TORCH_ON, VOICE_RECORD_START, VOICE_RECORD_STOP, LAUNCH_CAMERA)
 
     fun isStateful(action: Int) = action !in ONE_SHOT
 
@@ -104,6 +107,7 @@ object Action {
             MOBILE_DATA_OFF -> PackageManager.FEATURE_TELEPHONY_DATA
             LOCATION_ON,
             LOCATION_OFF -> PackageManager.FEATURE_LOCATION
+            LAUNCH_CAMERA -> PackageManager.FEATURE_CAMERA_ANY
             else -> null
         }
 
@@ -126,8 +130,15 @@ object Action {
         if (action == AUTO_ROTATE_ON || action == AUTO_ROTATE_OFF) {
             return RotationPolicy.isRotationSupported(context)
         }
+        if (action == LAUNCH_CAMERA) {
+            return handles(context, Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA))
+        }
         return true
     }
+
+    private fun handles(context: Context, intent: Intent) =
+        context.packageManager.resolveActivityAsUser(intent, 0, ActivityManager.getCurrentUser()) !=
+            null
 
     fun grantIntent(context: Context, action: Int): Intent? =
         when (action) {
@@ -213,6 +224,7 @@ class Actions(private val context: Context) {
             Action.AUTO_ROTATE_OFF -> setAutoRotate(false)
             Action.LOCATION_ON -> setLocation(true)
             Action.LOCATION_OFF -> setLocation(false)
+            Action.LAUNCH_CAMERA -> launch(Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA))
         }
     }
 
@@ -265,6 +277,47 @@ class Actions(private val context: Context) {
         val manager = locationManager ?: error("no location on this device")
         manager.setLocationEnabledForUser(enabled, UserHandle.of(ActivityManager.getCurrentUser()))
     }
+
+    // A package installed for the user the app is started for is not one
+    // installed for the user this process belongs to.
+    private fun packagesFor(userId: Int) =
+        context.createContextAsUser(UserHandle.of(userId), 0).packageManager
+
+    // Every start the platform resolves gets MATCH_DEFAULT_ONLY, which drops a
+    // launcher filter that does not name CATEGORY_DEFAULT, so naming the
+    // component is what makes a category intent start at all. A start the
+    // platform can resolve itself is left to it, chooser included.
+    private fun launch(intent: Intent, userId: Int = ActivityManager.getCurrentUser()) {
+        val resolved = intent.component ?: resolveComponent(intent, userId)
+        if (resolved != null) {
+            intent.component = resolved
+        }
+
+        context.startActivityAsUser(
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            UserHandle.of(userId),
+        )
+    }
+
+    // Nothing is named when the platform can resolve the start itself, and a
+    // tie it cannot resolve is settled here rather than dropped.
+    private fun resolveComponent(intent: Intent, userId: Int): ComponentName? {
+        val packageManager = packagesFor(userId)
+        if (handlers(packageManager, intent, PackageManager.MATCH_DEFAULT_ONLY).isNotEmpty()) {
+            return null
+        }
+
+        val handlers = handlers(packageManager, intent, 0)
+        if (handlers.isEmpty()) {
+            error("nothing handles ${intent.action}")
+        }
+        return handlers.first().activityInfo.let { ComponentName(it.packageName, it.name) }
+    }
+
+    // An activity no other app could start is not one to name, which the
+    // system uid is otherwise allowed to do.
+    private fun handlers(packageManager: PackageManager, intent: Intent, flags: Int) =
+        packageManager.queryIntentActivities(intent, flags).filter { it.activityInfo.exported }
 
     private val torchCameraId: String? by lazy {
         cameraManager?.cameraIdList?.firstOrNull {

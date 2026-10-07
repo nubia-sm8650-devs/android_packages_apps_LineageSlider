@@ -30,6 +30,7 @@
         <item>@string/action_auto_rotate_off</item>
         <item>@string/action_location_on</item>
         <item>@string/action_location_off</item>
+        <item>@string/action_launch_camera</item>
     </string-array>
 
     <string-array name="action_values" translatable="false">
@@ -58,5 +59,6 @@
         <item>21</item>
         <item>22</item>
         <item>23</item>
+        <item>24</item>
     </string-array>
 </resources>
