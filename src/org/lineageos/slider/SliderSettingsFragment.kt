@@ -20,6 +20,7 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceScreen
 import androidx.preference.PreferenceViewHolder
+import androidx.preference.SwitchPreferenceCompat
 import com.android.settingslib.widget.MainSwitchPreference
 import com.android.settingslib.widget.SettingsBasePreferenceFragment
 import vendor.lineage.slider.Direction
@@ -206,6 +207,14 @@ class SliderSettingsFragment : SettingsBasePreferenceFragment() {
             perPosition.add(PositionPrefs(appPref, categoryPref))
         }
 
+        val showDialogPref =
+            SwitchPreferenceCompat(context).apply {
+                key = "$name/show_dialog"
+                title = getString(R.string.slider_show_dialog)
+                setDefaultValue(true)
+            }
+        category.addPreference(showDialogPref)
+
         // A preset's actions come from its table rather than from what a row
         // holds, since only a custom preset lets a row be opened.
         fun actionAt(preset: String?, position: Int): Int {
@@ -218,6 +227,7 @@ class SliderSettingsFragment : SettingsBasePreferenceFragment() {
         fun update(enabled: Boolean, preset: String?) {
             val custom = preset == Presets.CUSTOM
             presetPref.isEnabled = enabled
+            showDialogPref.isEnabled = enabled
             positionGroups.forEach { it.isEnabled = enabled }
             positionPrefs.forEachIndexed { position, pref ->
                 pref.isEnabled = enabled && custom

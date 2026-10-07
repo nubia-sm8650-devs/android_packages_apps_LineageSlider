@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The LineageOS Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+<resources>
+    <dimen name="slider_indicator_margin">48dp</dimen>
+    <dimen name="slider_indicator_edge_margin">8dp</dimen>
+</resources>

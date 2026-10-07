@@ -5,6 +5,7 @@
 
 package org.lineageos.slider
 
+import android.content.ComponentName
 import android.os.Handler
 import android.os.IBinder
 import android.os.IServiceCallback
@@ -13,11 +14,13 @@ import android.os.ServiceManager
 import android.util.Log
 import vendor.lineage.slider.ISlider
 import vendor.lineage.slider.ISliderCallback
+import vendor.lineage.slider.SliderInfo
 
 class SliderInstance(
     private val app: SliderApp,
     val name: String,
     private val actions: Actions?,
+    private val dialog: SliderDialog?,
     private val handler: Handler,
 ) {
     private val service = ISlider.DESCRIPTOR + "/" + name
@@ -25,6 +28,7 @@ class SliderInstance(
 
     @Volatile private var lastPosition = -1
     @Volatile private var config: Config? = null
+    @Volatile private var info: SliderInfo? = null
 
     val currentPosition
         get() = lastPosition
@@ -42,6 +46,9 @@ class SliderInstance(
                     }
                 app.onPositionChanged(name, position)
                 applyPosition(position, restore)
+                if (!restore) {
+                    showDialog(position)
+                }
             }
 
             override fun getInterfaceVersion() = ISliderCallback.VERSION
@@ -86,6 +93,7 @@ class SliderInstance(
             val description = service.sliderInfo
             val position = service.position
             config = Config(app, name, description.positionCount)
+            info = description
             lastPosition = position
             service.registerCallback(callback)
             Log.i(TAG, "connected $name, positions=${description.positionCount}, at $position")
@@ -109,6 +117,47 @@ class SliderInstance(
         }
         Log.i(TAG, "$name position=$position action=$action")
         actions.apply(action, config.targetForAction(position, action))
+    }
+
+    private fun showDialog(position: Int) {
+        val dialog = dialog ?: return
+        val config = config ?: return
+        if (!config.enabled || !config.showDialog) {
+            return
+        }
+        val action = config.actionForPosition(position)
+        val label = Action.label(app, action) ?: return
+        val target = config.targetForAction(position, action)
+        if (target.isNullOrEmpty()) {
+            dialog.show(label, info)
+        } else {
+            dialog.show(
+                app.getString(R.string.slider_indicator_target, label, targetName(action, target)),
+                info,
+            )
+        }
+    }
+
+    private fun targetName(action: Int, target: String): String {
+        if (action == Action.LAUNCH_DEFAULT_APP) {
+            return categoryName(target)
+        }
+        val packageManager = app.packageManager
+        val component = ComponentName.unflattenFromString(target) ?: return target
+        return runCatching {
+                packageManager.getActivityInfo(component, 0).loadLabel(packageManager).toString()
+            }
+            .getOrDefault(target)
+    }
+
+    private fun categoryName(category: String): String {
+        val values = app.resources.getStringArray(R.array.app_category_values)
+        val index = values.indexOf(category)
+        return if (index < 0) {
+            category
+        } else {
+            app.resources.getStringArray(R.array.app_category_entries)[index]
+        }
     }
 
     companion object {

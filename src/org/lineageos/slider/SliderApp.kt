@@ -49,8 +49,9 @@ class SliderApp : Application() {
         // keeps for the system user. Another user's process only follows it.
         val acting = UserHandle.myUserId() == UserHandle.USER_SYSTEM
         val actions = if (acting) Actions(this) else null
+        val dialog = if (acting) SliderDialog(this) else null
         for (name in ServiceManager.getDeclaredInstances(ISlider.DESCRIPTOR)) {
-            val instance = SliderInstance(this, name, actions, handler)
+            val instance = SliderInstance(this, name, actions, dialog, handler)
             instances.add(instance)
             instance.watch()
         }
