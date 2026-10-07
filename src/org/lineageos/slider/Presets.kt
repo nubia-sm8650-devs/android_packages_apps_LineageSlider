@@ -17,10 +17,15 @@ object Presets {
     const val TOTAL_SILENCE = "total_silence"
     const val ALARMS_ONLY = "alarms_only"
     const val FLASHLIGHT = "flashlight"
+    const val BATTERY_SAVER = "battery_saver"
     const val CUSTOM = "custom"
 
     private val LABELS =
-        mapOf(FLASHLIGHT to R.string.preset_flashlight, CUSTOM to R.string.preset_custom)
+        mapOf(
+            FLASHLIGHT to R.string.preset_flashlight,
+            BATTERY_SAVER to R.string.preset_battery_saver,
+            CUSTOM to R.string.preset_custom,
+        )
 
     fun table(preset: String, count: Int): IntArray? =
         if (preset == CUSTOM) null else tables(count)[preset]
@@ -81,7 +86,10 @@ object Presets {
         }
 
     private fun featurePresets(count: Int): Map<String, IntArray> =
-        mapOf(FLASHLIGHT to toggle(count, Action.TORCH_OFF, Action.TORCH_ON))
+        mapOf(
+            FLASHLIGHT to toggle(count, Action.TORCH_OFF, Action.TORCH_ON),
+            BATTERY_SAVER to toggle(count, Action.BATTERY_SAVER_OFF, Action.BATTERY_SAVER_ON),
+        )
 
     private fun toggle(count: Int, off: Int, on: Int): IntArray =
         IntArray(count) { if (it == count - 1) on else off }
