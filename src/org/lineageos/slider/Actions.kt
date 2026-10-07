@@ -8,6 +8,9 @@ package org.lineageos.slider
 import android.app.ActivityManager
 import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.PackageManager
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
 import android.media.AudioManager
 import android.os.Handler
 import android.os.Looper
@@ -25,6 +28,8 @@ object Action {
     const val DND_PRIORITY = 3
     const val DND_TOTAL = 4
     const val DND_ALARMS = 5
+    const val TORCH_ON = 6
+    const val TORCH_OFF = 7
 
     // An action a restriction takes away from the user in front of the screen,
     // who is the user it would be carried out for.
@@ -47,6 +52,8 @@ object Action {
 
     private fun requiredFeature(action: Int): String? =
         when (action) {
+            TORCH_ON,
+            TORCH_OFF -> PackageManager.FEATURE_CAMERA_FLASH
             else -> null
         }
 
@@ -80,6 +87,7 @@ object Action {
 class Actions(private val context: Context) {
     private val audioManager = context.getSystemService(AudioManager::class.java)!!
     private val notificationManager = context.getSystemService(NotificationManager::class.java)!!
+    private val cameraManager = context.getSystemService(CameraManager::class.java)
     private val handler = Handler(Looper.getMainLooper())
 
     fun apply(action: Int) {
@@ -117,6 +125,8 @@ class Actions(private val context: Context) {
                 audioManager.ringerModeInternal = AudioManager.RINGER_MODE_NORMAL
                 notificationManager.setInterruptionFilter(action - 1)
             }
+            Action.TORCH_ON -> setTorch(true)
+            Action.TORCH_OFF -> setTorch(false)
         }
     }
 
@@ -129,6 +139,20 @@ class Actions(private val context: Context) {
                     Toast.LENGTH_SHORT,
                 )
                 .show()
+        }
+    }
+
+    private fun setTorch(enabled: Boolean) {
+        val manager = cameraManager ?: error("no camera on this device")
+        val id = torchCameraId ?: error("no camera with a flash")
+        manager.setTorchMode(id, enabled)
+    }
+
+    private val torchCameraId: String? by lazy {
+        cameraManager?.cameraIdList?.firstOrNull {
+            cameraManager
+                .getCameraCharacteristics(it)
+                .get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
         }
     }
 
