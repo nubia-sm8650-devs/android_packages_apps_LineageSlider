@@ -38,6 +38,7 @@
         <item>@string/action_night_light_off</item>
         <item>@string/action_launch_app</item>
         <item>@string/action_launch_default_app</item>
+        <item>@string/action_close_top_app</item>
     </string-array>
 
     <string-array name="action_values" translatable="false">
@@ -74,6 +75,7 @@
         <item>29</item>
         <item>30</item>
         <item>31</item>
+        <item>32</item>
     </string-array>
 
     <string-array name="app_category_entries" translatable="false">
