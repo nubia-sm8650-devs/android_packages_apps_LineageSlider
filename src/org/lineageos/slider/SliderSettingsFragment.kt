@@ -164,6 +164,17 @@ class SliderSettingsFragment : SettingsBasePreferenceFragment() {
             }
         }
 
+        positionPrefs.forEach { pref ->
+            pref.onPreferenceChangeListener =
+                Preference.OnPreferenceChangeListener { preference, newValue ->
+                    val chosen = newValue as String
+                    (preference as ListPreference).value = chosen
+                    requestGrants(chosen.toIntOrNull() ?: Action.NONE)
+                    update(enabledPref.isChecked, presetPref.value)
+                    true
+                }
+        }
+
         rows[name] = positionPrefs
         sliderApp()?.currentPosition(name)?.let { mark(name, it) }
 
@@ -176,6 +187,7 @@ class SliderSettingsFragment : SettingsBasePreferenceFragment() {
         presetPref.onPreferenceChangeListener =
             Preference.OnPreferenceChangeListener { _, newValue ->
                 update(enabledPref.isChecked, newValue as String)
+                Presets.table(newValue as String, count)?.let { requestGrants(*it) }
                 true
             }
     }
@@ -219,6 +231,16 @@ class SliderSettingsFragment : SettingsBasePreferenceFragment() {
             position == count - 1 -> getString(R.string.position_on)
             else -> getString(R.string.position_middle)
         }
+
+    // A permission another app must hold is asked for while the user is here
+    // choosing the action that needs it, rather than once the slider moves.
+    private fun requestGrants(vararg actions: Int) {
+        for (action in actions) {
+            val intent = Action.grantIntent(preferenceManager.context, action) ?: continue
+            startActivity(intent)
+            return
+        }
+    }
 
     // Marking a position toggles the badge's visibility rather than swapping
     // the widget layout, so a row keeps its view type.
