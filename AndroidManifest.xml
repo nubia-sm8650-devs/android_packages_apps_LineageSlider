@@ -13,8 +13,22 @@
 
     <application
         android:name=".SliderApp"
+        android:theme="@android:style/Theme.DeviceDefault.DayNight"
         android:label="@string/slider_settings_title"
         android:persistent="true"
         android:defaultToDeviceProtectedStorage="true"
-        android:directBootAware="true" />
+        android:directBootAware="true">
+
+        <activity
+            android:name=".SliderSettingsActivity"
+            android:label="@string/slider_settings_title"
+            android:theme="@style/Theme.SubSettingsBase.Expressive"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="org.lineageos.slider.SETTINGS" />
+                <action android:name="com.android.settings.action.EXTRA_SETTINGS" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+    </application>
 </manifest>

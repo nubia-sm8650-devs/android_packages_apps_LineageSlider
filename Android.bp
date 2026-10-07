@@ -13,5 +13,6 @@ android_app {
     static_libs: [
         "vendor.lineage.slider-V1-java",
         "org.lineageos.platform.internal",
+        "org.lineageos.settings.resources",
     ],
 }

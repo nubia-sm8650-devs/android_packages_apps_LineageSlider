@@ -15,6 +15,7 @@ import vendor.lineage.slider.ISlider
 
 class SliderApp : Application() {
     private val instances = CopyOnWriteArrayList<SliderInstance>()
+    private val listeners = CopyOnWriteArrayList<(String, Int) -> Unit>()
     private lateinit var handler: Handler
 
     override fun onCreate() {
@@ -23,6 +24,24 @@ class SliderApp : Application() {
         thread.start()
         handler = Handler(thread.looper)
         handler.post { init() }
+    }
+
+    fun currentPosition(instance: String) =
+        instances.firstOrNull { it.name == instance }?.currentPosition
+
+    fun addPositionListener(listener: (String, Int) -> Unit) {
+        listeners.add(listener)
+        instances.forEach { listener(it.name, it.currentPosition) }
+    }
+
+    fun removePositionListener(listener: (String, Int) -> Unit) {
+        listeners.remove(listener)
+    }
+
+    // Reported from whichever thread the HAL answered on, so a listener that
+    // touches the screen hops to the main thread itself.
+    internal fun onPositionChanged(instance: String, position: Int) {
+        listeners.forEach { it(instance, position) }
     }
 
     private fun init() {

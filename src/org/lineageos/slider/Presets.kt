@@ -6,6 +6,7 @@
 package org.lineageos.slider
 
 import android.content.Context
+import android.icu.text.ListFormatter
 
 object Presets {
     const val RING_SILENT = "ring_silent"
@@ -17,10 +18,30 @@ object Presets {
     const val ALARMS_ONLY = "alarms_only"
     const val CUSTOM = "custom"
 
+    private val LABELS = mapOf(CUSTOM to R.string.preset_custom)
+
     fun table(preset: String, count: Int): IntArray? =
         if (preset == CUSTOM) null else tables(count)[preset]
 
     fun has(preset: String, count: Int) = preset == CUSTOM || tables(count).containsKey(preset)
+
+    // A sound preset is named by the modes it selects, since one id stands
+    // for different modes at different position counts.
+    fun label(context: Context, id: String, count: Int): String {
+        val actions = soundPresets(count)[id]
+        if (actions == null) {
+            val label = LABELS[id] ?: return id
+            return context.getString(label)
+        }
+        return ListFormatter.getInstance(context.resources.configuration.locales[0])
+            .format(actions.map { Action.label(context, it).orEmpty() })
+    }
+
+    fun ids(context: Context, count: Int): List<String> =
+        tables(count)
+            .filterValues { actions -> actions.all { Action.isAvailable(context, it) } }
+            .keys
+            .toList() + CUSTOM
 
     // A count with no sound arrangement of its own, or one the device cannot
     // perform, leaves every position for the user to fill in.
