@@ -13,6 +13,7 @@ import android.content.pm.PackageManager
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.media.AudioManager
+import android.net.ConnectivityManager
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
@@ -36,6 +37,8 @@ object Action {
     const val BATTERY_SAVER_OFF = 9
     const val VOICE_RECORD_START = 10
     const val VOICE_RECORD_STOP = 11
+    const val AIRPLANE_ON = 12
+    const val AIRPLANE_OFF = 13
 
     // Actions that happen once rather than selecting a state. TORCH_ON is
     // one, since a flashlight lighting itself at boot is not a held state.
@@ -50,6 +53,8 @@ object Action {
             SILENT,
             VIBRATE,
             NORMAL -> UserManager.DISALLOW_ADJUST_VOLUME
+            AIRPLANE_ON,
+            AIRPLANE_OFF -> UserManager.DISALLOW_AIRPLANE_MODE
             else -> null
         }
 
@@ -113,6 +118,7 @@ class Actions(private val context: Context) {
     private val notificationManager = context.getSystemService(NotificationManager::class.java)!!
     private val powerManager = context.getSystemService(PowerManager::class.java)!!
     private val cameraManager = context.getSystemService(CameraManager::class.java)
+    private val connectivityManager = context.getSystemService(ConnectivityManager::class.java)
     private val voiceRecorder = VoiceRecorder(context)
     private val handler = Handler(Looper.getMainLooper())
 
@@ -157,6 +163,8 @@ class Actions(private val context: Context) {
             Action.BATTERY_SAVER_OFF -> powerManager.setPowerSaveModeEnabled(false)
             Action.VOICE_RECORD_START -> voiceRecorder.start()
             Action.VOICE_RECORD_STOP -> voiceRecorder.stop()
+            Action.AIRPLANE_ON -> requireConnectivity().setAirplaneMode(true)
+            Action.AIRPLANE_OFF -> requireConnectivity().setAirplaneMode(false)
         }
     }
 
@@ -171,6 +179,8 @@ class Actions(private val context: Context) {
                 .show()
         }
     }
+
+    private fun requireConnectivity() = connectivityManager ?: error("no ConnectivityManager")
 
     private fun setTorch(enabled: Boolean) {
         val manager = cameraManager ?: error("no camera on this device")

@@ -18,6 +18,8 @@
         <item>@string/action_battery_saver_off</item>
         <item>@string/action_voice_record_start</item>
         <item>@string/action_voice_record_stop</item>
+        <item>@string/action_airplane_on</item>
+        <item>@string/action_airplane_off</item>
     </string-array>
 
     <string-array name="action_values" translatable="false">
@@ -34,5 +36,7 @@
         <item>9</item>
         <item>10</item>
         <item>11</item>
+        <item>12</item>
+        <item>13</item>
     </string-array>
 </resources>
