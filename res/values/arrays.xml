@@ -32,6 +32,8 @@
         <item>@string/action_location_off</item>
         <item>@string/action_launch_camera</item>
         <item>@string/action_launch_assistant</item>
+        <item>@string/action_media_pause</item>
+        <item>@string/action_media_play</item>
     </string-array>
 
     <string-array name="action_values" translatable="false">
@@ -62,5 +64,7 @@
         <item>23</item>
         <item>24</item>
         <item>25</item>
+        <item>26</item>
+        <item>27</item>
     </string-array>
 </resources>
