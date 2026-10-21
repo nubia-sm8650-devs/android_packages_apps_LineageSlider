@@ -27,6 +27,8 @@ object Presets {
     const val LOCATION = "location"
     const val MEDIA = "media"
     const val NIGHT_LIGHT = "night_light"
+    const val LAUNCH_CAMERA = "launch_camera"
+    const val LAUNCH_ASSISTANT = "launch_assistant"
     const val CUSTOM = "custom"
 
     private val LABELS =
@@ -42,6 +44,8 @@ object Presets {
             LOCATION to R.string.preset_location,
             MEDIA to R.string.preset_media,
             NIGHT_LIGHT to R.string.preset_night_light,
+            LAUNCH_CAMERA to R.string.preset_launch_camera,
+            LAUNCH_ASSISTANT to R.string.preset_launch_assistant,
             CUSTOM to R.string.preset_custom,
         )
 
@@ -82,7 +86,7 @@ object Presets {
     }
 
     private fun tables(count: Int): Map<String, IntArray> =
-        soundPresets(count) + featurePresets(count)
+        soundPresets(count) + featurePresets(count) + launchPresets(count)
 
     private fun soundPresets(count: Int): Map<String, IntArray> =
         when (count) {
@@ -116,6 +120,13 @@ object Presets {
             LOCATION to toggle(count, Action.LOCATION_OFF, Action.LOCATION_ON),
             MEDIA to pair(count, Action.MEDIA_PAUSE, Action.MEDIA_PLAY),
             NIGHT_LIGHT to toggle(count, Action.NIGHT_LIGHT_OFF, Action.NIGHT_LIGHT_ON),
+        )
+
+    // The assistant has no task to close, so nothing is paired with it.
+    private fun launchPresets(count: Int): Map<String, IntArray> =
+        mapOf(
+            LAUNCH_CAMERA to pair(count, Action.CLOSE_TOP_APP, Action.LAUNCH_CAMERA),
+            LAUNCH_ASSISTANT to pair(count, Action.NONE, Action.LAUNCH_ASSISTANT),
         )
 
     // Repeating "off" has to be harmless, which holds for a state but not for
