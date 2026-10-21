@@ -91,6 +91,8 @@ object Presets {
             BATTERY_SAVER to toggle(count, Action.BATTERY_SAVER_OFF, Action.BATTERY_SAVER_ON),
         )
 
+    // Repeating "off" has to be harmless, which holds for a state but not for
+    // a one-shot.
     private fun toggle(count: Int, off: Int, on: Int): IntArray =
         IntArray(count) { if (it == count - 1) on else off }
 }

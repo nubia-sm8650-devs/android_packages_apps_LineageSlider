@@ -34,6 +34,12 @@ object Action {
     const val BATTERY_SAVER_ON = 8
     const val BATTERY_SAVER_OFF = 9
 
+    // Actions that happen once rather than selecting a state. TORCH_ON is
+    // one, since a flashlight lighting itself at boot is not a held state.
+    private val ONE_SHOT = setOf(TORCH_ON)
+
+    fun isStateful(action: Int) = action !in ONE_SHOT
+
     // An action a restriction takes away from the user in front of the screen,
     // who is the user it would be carried out for.
     private fun restriction(action: Int): String? =
