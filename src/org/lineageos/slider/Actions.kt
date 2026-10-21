@@ -14,6 +14,7 @@ import android.hardware.camera2.CameraManager
 import android.media.AudioManager
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
 import android.os.UserHandle
 import android.os.UserManager
 import android.os.Vibrator
@@ -30,6 +31,8 @@ object Action {
     const val DND_ALARMS = 5
     const val TORCH_ON = 6
     const val TORCH_OFF = 7
+    const val BATTERY_SAVER_ON = 8
+    const val BATTERY_SAVER_OFF = 9
 
     // An action a restriction takes away from the user in front of the screen,
     // who is the user it would be carried out for.
@@ -87,6 +90,7 @@ object Action {
 class Actions(private val context: Context) {
     private val audioManager = context.getSystemService(AudioManager::class.java)!!
     private val notificationManager = context.getSystemService(NotificationManager::class.java)!!
+    private val powerManager = context.getSystemService(PowerManager::class.java)!!
     private val cameraManager = context.getSystemService(CameraManager::class.java)
     private val handler = Handler(Looper.getMainLooper())
 
@@ -127,6 +131,8 @@ class Actions(private val context: Context) {
             }
             Action.TORCH_ON -> setTorch(true)
             Action.TORCH_OFF -> setTorch(false)
+            Action.BATTERY_SAVER_ON -> powerManager.setPowerSaveModeEnabled(true)
+            Action.BATTERY_SAVER_OFF -> powerManager.setPowerSaveModeEnabled(false)
         }
     }
 

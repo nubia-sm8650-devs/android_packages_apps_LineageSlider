@@ -8,6 +8,7 @@
           android:sharedUserId="android.uid.system">
 
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+    <uses-permission android:name="android.permission.DEVICE_POWER" />
     <uses-permission android:name="android.permission.STATUS_BAR_SERVICE" />
     <uses-permission android:name="lineageos.permission.WRITE_SETTINGS" />
 
