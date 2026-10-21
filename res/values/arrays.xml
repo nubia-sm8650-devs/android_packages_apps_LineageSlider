@@ -24,6 +24,8 @@
         <item>@string/action_wifi_off</item>
         <item>@string/action_bluetooth_on</item>
         <item>@string/action_bluetooth_off</item>
+        <item>@string/action_mobile_data_on</item>
+        <item>@string/action_mobile_data_off</item>
     </string-array>
 
     <string-array name="action_values" translatable="false">
@@ -46,5 +48,7 @@
         <item>15</item>
         <item>16</item>
         <item>17</item>
+        <item>18</item>
+        <item>19</item>
     </string-array>
 </resources>
