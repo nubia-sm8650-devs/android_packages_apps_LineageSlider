@@ -15,6 +15,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
+import android.hardware.display.ColorDisplayManager
 import android.location.LocationManager
 import android.media.AudioManager
 import android.net.ConnectivityManager
@@ -63,6 +64,8 @@ object Action {
     const val LAUNCH_ASSISTANT = 25
     const val MEDIA_PAUSE = 26
     const val MEDIA_PLAY = 27
+    const val NIGHT_LIGHT_ON = 28
+    const val NIGHT_LIGHT_OFF = 29
 
     // Actions that happen once rather than selecting a state. TORCH_ON is
     // one, since a flashlight lighting itself at boot is not a held state.
@@ -151,6 +154,9 @@ object Action {
         if (action == LAUNCH_CAMERA) {
             return handles(context, Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA))
         }
+        if (action == NIGHT_LIGHT_ON || action == NIGHT_LIGHT_OFF) {
+            return ColorDisplayManager.isNightDisplayAvailable(context)
+        }
         return true
     }
 
@@ -199,6 +205,7 @@ class Actions(private val context: Context) {
     private val wifiManager = context.getSystemService(WifiManager::class.java)
     private val locationManager = context.getSystemService(LocationManager::class.java)
     private val telephonyManager = context.getSystemService(TelephonyManager::class.java)
+    private val colorDisplayManager = context.getSystemService(ColorDisplayManager::class.java)
     private val connectivityManager = context.getSystemService(ConnectivityManager::class.java)
     private val bluetoothAdapter = context.getSystemService(BluetoothManager::class.java)?.adapter
     private val voiceRecorder = VoiceRecorder(context)
@@ -261,6 +268,8 @@ class Actions(private val context: Context) {
             Action.LAUNCH_ASSISTANT -> launchAssist()
             Action.MEDIA_PAUSE -> sendMediaKey(KeyEvent.KEYCODE_MEDIA_PAUSE)
             Action.MEDIA_PLAY -> sendMediaKey(KeyEvent.KEYCODE_MEDIA_PLAY)
+            Action.NIGHT_LIGHT_ON -> requireColorDisplay().setNightDisplayActivated(true)
+            Action.NIGHT_LIGHT_OFF -> requireColorDisplay().setNightDisplayActivated(false)
         }
     }
 
@@ -281,6 +290,8 @@ class Actions(private val context: Context) {
     private fun requireBluetooth() = bluetoothAdapter ?: error("no Bluetooth on this device")
 
     private fun requireTelephony() = telephonyManager ?: error("no telephony on this device")
+
+    private fun requireColorDisplay() = colorDisplayManager ?: error("no ColorDisplayManager")
 
     private fun requireConnectivity() = connectivityManager ?: error("no ConnectivityManager")
 
