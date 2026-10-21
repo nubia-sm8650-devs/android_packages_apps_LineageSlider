@@ -122,7 +122,7 @@ class SliderInstance(
             return
         }
         Log.i(TAG, "$name position=$position action=$action")
-        actions.apply(action, config.target(position))
+        actions.apply(action, config.targetForAction(position, action))
     }
 
     companion object {

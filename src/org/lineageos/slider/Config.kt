@@ -39,6 +39,10 @@ class Config(
 
     fun target(position: Int): String? = string(keyTarget(position))
 
+    fun category(position: Int): String? =
+        string(keyCategory(position))
+            ?: context.resources.getStringArray(R.array.app_category_values).firstOrNull()
+
     fun actionForPosition(position: Int): Int {
         val preset = preset
         if (preset == Presets.CUSTOM) {
@@ -47,6 +51,15 @@ class Config(
         val table = Presets.table(preset, positionCount) ?: return Action.NONE
         return table.getOrElse(position) { Action.NONE }
     }
+
+    // A target outlives the action that needed it, since choosing another
+    // action only hides its row, so each action reads back only its own.
+    fun targetForAction(position: Int, action: Int): String? =
+        when (action) {
+            Action.LAUNCH_APP -> target(position)
+            Action.LAUNCH_DEFAULT_APP -> category(position)
+            else -> null
+        }
 
     // Read on every access rather than held, so a choice made while the
     // slider sits in a position takes effect on the next move.
@@ -99,6 +112,8 @@ class Config(
         private fun keyPosition(position: Int) = "position_$position"
 
         private fun keyTarget(position: Int) = "position_$position/app"
+
+        private fun keyCategory(position: Int) = "position_$position/category"
 
         // A malformed value is one a device seeded by hand, so it reads as no
         // configuration at all rather than taking the screen down with it.

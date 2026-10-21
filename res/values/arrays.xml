@@ -37,6 +37,7 @@
         <item>@string/action_night_light_on</item>
         <item>@string/action_night_light_off</item>
         <item>@string/action_launch_app</item>
+        <item>@string/action_launch_default_app</item>
     </string-array>
 
     <string-array name="action_values" translatable="false">
@@ -72,5 +73,32 @@
         <item>28</item>
         <item>29</item>
         <item>30</item>
+        <item>31</item>
+    </string-array>
+
+    <string-array name="app_category_entries" translatable="false">
+        <item>@string/app_category_browser</item>
+        <item>@string/app_category_calculator</item>
+        <item>@string/app_category_calendar</item>
+        <item>@string/app_category_contacts</item>
+        <item>@string/app_category_email</item>
+        <item>@string/app_category_files</item>
+        <item>@string/app_category_gallery</item>
+        <item>@string/app_category_maps</item>
+        <item>@string/app_category_messaging</item>
+        <item>@string/app_category_music</item>
+    </string-array>
+
+    <string-array name="app_category_values" translatable="false">
+        <item>android.intent.category.APP_BROWSER</item>
+        <item>android.intent.category.APP_CALCULATOR</item>
+        <item>android.intent.category.APP_CALENDAR</item>
+        <item>android.intent.category.APP_CONTACTS</item>
+        <item>android.intent.category.APP_EMAIL</item>
+        <item>android.intent.category.APP_FILES</item>
+        <item>android.intent.category.APP_GALLERY</item>
+        <item>android.intent.category.APP_MAPS</item>
+        <item>android.intent.category.APP_MESSAGING</item>
+        <item>android.intent.category.APP_MUSIC</item>
     </string-array>
 </resources>

@@ -67,6 +67,7 @@ object Action {
     const val NIGHT_LIGHT_ON = 28
     const val NIGHT_LIGHT_OFF = 29
     const val LAUNCH_APP = 30
+    const val LAUNCH_DEFAULT_APP = 31
 
     // Actions that happen once rather than selecting a state. TORCH_ON is
     // one, since a flashlight lighting itself at boot is not a held state.
@@ -80,6 +81,7 @@ object Action {
             MEDIA_PAUSE,
             MEDIA_PLAY,
             LAUNCH_APP,
+            LAUNCH_DEFAULT_APP,
         )
 
     fun isStateful(action: Int) = action !in ONE_SHOT
@@ -273,6 +275,7 @@ class Actions(private val context: Context) {
             Action.NIGHT_LIGHT_ON -> requireColorDisplay().setNightDisplayActivated(true)
             Action.NIGHT_LIGHT_OFF -> requireColorDisplay().setNightDisplayActivated(false)
             Action.LAUNCH_APP -> launchApp(target)
+            Action.LAUNCH_DEFAULT_APP -> launchDefaultApp(target)
         }
     }
 
@@ -367,6 +370,15 @@ class Actions(private val context: Context) {
             return intent
         }
         return packageManager.getLaunchIntentForPackage(component.packageName)
+    }
+
+    // A category is a selector rather than the intent's own category, which is
+    // what makes the started app see the MAIN and LAUNCHER it sees from home.
+    private fun launchDefaultApp(category: String?) {
+        if (category.isNullOrEmpty()) {
+            error("no app category chosen")
+        }
+        launch(Intent.makeMainSelectorActivity(Intent.ACTION_MAIN, category))
     }
 
     // Every start the platform resolves gets MATCH_DEFAULT_ONLY, which drops a
