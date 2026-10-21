@@ -14,6 +14,7 @@ import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.media.AudioManager
 import android.net.ConnectivityManager
+import android.net.wifi.WifiManager
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
@@ -39,6 +40,8 @@ object Action {
     const val VOICE_RECORD_STOP = 11
     const val AIRPLANE_ON = 12
     const val AIRPLANE_OFF = 13
+    const val WIFI_ON = 14
+    const val WIFI_OFF = 15
 
     // Actions that happen once rather than selecting a state. TORCH_ON is
     // one, since a flashlight lighting itself at boot is not a held state.
@@ -55,6 +58,8 @@ object Action {
             NORMAL -> UserManager.DISALLOW_ADJUST_VOLUME
             AIRPLANE_ON,
             AIRPLANE_OFF -> UserManager.DISALLOW_AIRPLANE_MODE
+            WIFI_ON,
+            WIFI_OFF -> UserManager.DISALLOW_CHANGE_WIFI_STATE
             else -> null
         }
 
@@ -73,6 +78,8 @@ object Action {
             TORCH_OFF -> PackageManager.FEATURE_CAMERA_FLASH
             VOICE_RECORD_START,
             VOICE_RECORD_STOP -> PackageManager.FEATURE_MICROPHONE
+            WIFI_ON,
+            WIFI_OFF -> PackageManager.FEATURE_WIFI
             else -> null
         }
 
@@ -118,6 +125,7 @@ class Actions(private val context: Context) {
     private val notificationManager = context.getSystemService(NotificationManager::class.java)!!
     private val powerManager = context.getSystemService(PowerManager::class.java)!!
     private val cameraManager = context.getSystemService(CameraManager::class.java)
+    private val wifiManager = context.getSystemService(WifiManager::class.java)
     private val connectivityManager = context.getSystemService(ConnectivityManager::class.java)
     private val voiceRecorder = VoiceRecorder(context)
     private val handler = Handler(Looper.getMainLooper())
@@ -165,6 +173,8 @@ class Actions(private val context: Context) {
             Action.VOICE_RECORD_STOP -> voiceRecorder.stop()
             Action.AIRPLANE_ON -> requireConnectivity().setAirplaneMode(true)
             Action.AIRPLANE_OFF -> requireConnectivity().setAirplaneMode(false)
+            Action.WIFI_ON -> setWifi(true)
+            Action.WIFI_OFF -> setWifi(false)
         }
     }
 
@@ -180,12 +190,21 @@ class Actions(private val context: Context) {
         }
     }
 
+    private fun requireWifi() = wifiManager ?: error("no Wi-Fi on this device")
+
     private fun requireConnectivity() = connectivityManager ?: error("no ConnectivityManager")
 
     private fun setTorch(enabled: Boolean) {
         val manager = cameraManager ?: error("no camera on this device")
         val id = torchCameraId ?: error("no camera with a flash")
         manager.setTorchMode(id, enabled)
+    }
+
+    // Wi-Fi refuses by return value rather than by throwing.
+    private fun setWifi(enabled: Boolean) {
+        if (!requireWifi().setWifiEnabled(enabled)) {
+            error("Wi-Fi refused the change")
+        }
     }
 
     private val torchCameraId: String? by lazy {

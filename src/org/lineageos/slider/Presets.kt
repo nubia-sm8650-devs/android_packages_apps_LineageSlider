@@ -20,6 +20,7 @@ object Presets {
     const val BATTERY_SAVER = "battery_saver"
     const val VOICE_RECORD = "voice_record"
     const val AIRPLANE = "airplane"
+    const val WIFI = "wifi"
     const val CUSTOM = "custom"
 
     private val LABELS =
@@ -28,6 +29,7 @@ object Presets {
             BATTERY_SAVER to R.string.preset_battery_saver,
             VOICE_RECORD to R.string.preset_voice_record,
             AIRPLANE to R.string.preset_airplane,
+            WIFI to R.string.preset_wifi,
             CUSTOM to R.string.preset_custom,
         )
 
@@ -95,6 +97,7 @@ object Presets {
             BATTERY_SAVER to toggle(count, Action.BATTERY_SAVER_OFF, Action.BATTERY_SAVER_ON),
             VOICE_RECORD to pair(count, Action.VOICE_RECORD_STOP, Action.VOICE_RECORD_START),
             AIRPLANE to toggle(count, Action.AIRPLANE_OFF, Action.AIRPLANE_ON),
+            WIFI to toggle(count, Action.WIFI_OFF, Action.WIFI_ON),
         )
 
     // Repeating "off" has to be harmless, which holds for a state but not for
