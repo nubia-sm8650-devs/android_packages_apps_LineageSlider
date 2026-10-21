@@ -67,6 +67,7 @@
     <string name="action_launch_camera">Open camera</string>
     <string name="action_launch_assistant">Open assistant</string>
     <string name="action_launch_app">Open an app</string>
+    <string name="action_close_top_app">Close the app the slider opened</string>
     <string name="action_launch_default_app">Open a default app</string>
     <string name="action_media_pause">Pause media</string>
     <string name="action_media_play">Resume media</string>

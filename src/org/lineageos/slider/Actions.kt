@@ -6,6 +6,7 @@
 package org.lineageos.slider
 
 import android.app.ActivityManager
+import android.app.ActivityTaskManager
 import android.app.NotificationManager
 import android.app.SearchManager
 import android.bluetooth.BluetoothManager
@@ -68,6 +69,7 @@ object Action {
     const val NIGHT_LIGHT_OFF = 29
     const val LAUNCH_APP = 30
     const val LAUNCH_DEFAULT_APP = 31
+    const val CLOSE_TOP_APP = 32
 
     // Actions that happen once rather than selecting a state. TORCH_ON is
     // one, since a flashlight lighting itself at boot is not a held state.
@@ -82,6 +84,7 @@ object Action {
             MEDIA_PLAY,
             LAUNCH_APP,
             LAUNCH_DEFAULT_APP,
+            CLOSE_TOP_APP,
         )
 
     fun isStateful(action: Int) = action !in ONE_SHOT
@@ -215,6 +218,8 @@ class Actions(private val context: Context) {
     private val voiceRecorder = VoiceRecorder(context)
     private val handler = Handler(Looper.getMainLooper())
 
+    private var opened: Opened? = null
+
     fun apply(action: Int, target: String? = null) {
         // A choice outlives the restriction that takes it away, so what the
         // screen stopped offering is also refused here.
@@ -276,6 +281,7 @@ class Actions(private val context: Context) {
             Action.NIGHT_LIGHT_OFF -> requireColorDisplay().setNightDisplayActivated(false)
             Action.LAUNCH_APP -> launchApp(target)
             Action.LAUNCH_DEFAULT_APP -> launchDefaultApp(target)
+            Action.CLOSE_TOP_APP -> closeTopApp()
         }
     }
 
@@ -381,13 +387,15 @@ class Actions(private val context: Context) {
         launch(Intent.makeMainSelectorActivity(Intent.ACTION_MAIN, category))
     }
 
-    // Every start the platform resolves gets MATCH_DEFAULT_ONLY, which drops a
-    // launcher filter that does not name CATEGORY_DEFAULT, so naming the
-    // component is what makes a category intent start at all. A start the
-    // platform can resolve itself is left to it, chooser included.
+    // Every start the platform resolves gets MATCH_DEFAULT_ONLY forced on it,
+    // which drops a launcher filter that does not name CATEGORY_DEFAULT.
     private fun launch(intent: Intent, userId: Int = ActivityManager.getCurrentUser()) {
         val resolved = intent.component ?: resolveComponent(intent, userId)
-        if (resolved != null) {
+        val packageName = resolved?.packageName
+        if (packageName != null) {
+            // Naming the activity answers the selector, so it is dropped
+            // rather than left to resolve the start a second time.
+            intent.selector = null
             intent.component = resolved
         }
 
@@ -395,6 +403,7 @@ class Actions(private val context: Context) {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
             UserHandle.of(userId),
         )
+        synchronized(this) { opened = packageName?.let { Opened(it, userId) } }
     }
 
     // Nothing is named when the platform can resolve the start itself, and a
@@ -417,6 +426,24 @@ class Actions(private val context: Context) {
     private fun handlers(packageManager: PackageManager, intent: Intent, flags: Int) =
         packageManager.queryIntentActivities(intent, flags).filter { it.activityInfo.exported }
 
+    // Only the package a paired launch named, for the user it ran as, while
+    // it holds the focus. The claim is dropped as it is read.
+    private fun closeTopApp() {
+        val target = synchronized(this) { opened.also { opened = null } } ?: return
+        if (target.userId != ActivityManager.getCurrentUser()) {
+            return
+        }
+
+        val service = ActivityTaskManager.getService()
+        val task = service.focusedRootTaskInfo ?: return
+        if (task.userId != target.userId || task.topActivity?.packageName != target.packageName) {
+            return
+        }
+        if (!service.removeTask(task.taskId)) {
+            error("${target.packageName} refused to close")
+        }
+    }
+
     private val torchCameraId: String? by lazy {
         cameraManager?.cameraIdList?.firstOrNull {
             cameraManager
@@ -424,6 +451,8 @@ class Actions(private val context: Context) {
                 .get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
         }
     }
+
+    private class Opened(val packageName: String, val userId: Int)
 
     companion object {
         private const val TAG = "LineageSlider"
