@@ -7,6 +7,7 @@ package org.lineageos.slider
 
 import android.app.ActivityManager
 import android.app.NotificationManager
+import android.app.SearchManager
 import android.bluetooth.BluetoothManager
 import android.content.ComponentName
 import android.content.Context
@@ -25,6 +26,7 @@ import android.os.UserHandle
 import android.os.UserManager
 import android.os.Vibrator
 import android.provider.MediaStore
+import android.provider.Settings
 import android.telephony.TelephonyManager
 import android.util.Log
 import android.widget.Toast
@@ -57,10 +59,12 @@ object Action {
     const val LOCATION_ON = 22
     const val LOCATION_OFF = 23
     const val LAUNCH_CAMERA = 24
+    const val LAUNCH_ASSISTANT = 25
 
     // Actions that happen once rather than selecting a state. TORCH_ON is
     // one, since a flashlight lighting itself at boot is not a held state.
-    private val ONE_SHOT = setOf(TORCH_ON, VOICE_RECORD_START, VOICE_RECORD_STOP, LAUNCH_CAMERA)
+    private val ONE_SHOT =
+        setOf(TORCH_ON, VOICE_RECORD_START, VOICE_RECORD_STOP, LAUNCH_CAMERA, LAUNCH_ASSISTANT)
 
     fun isStateful(action: Int) = action !in ONE_SHOT
 
@@ -127,6 +131,9 @@ object Action {
         if (action == VOICE_RECORD_START || action == VOICE_RECORD_STOP) {
             return VoiceRecorder.isAvailable(context)
         }
+        if (action == LAUNCH_ASSISTANT) {
+            return hasAssistant(context)
+        }
         if (action == AUTO_ROTATE_ON || action == AUTO_ROTATE_OFF) {
             return RotationPolicy.isRotationSupported(context)
         }
@@ -139,6 +146,21 @@ object Action {
     private fun handles(context: Context, intent: Intent) =
         context.packageManager.resolveActivityAsUser(intent, 0, ActivityManager.getCurrentUser()) !=
             null
+
+    // An assistant is set as a VoiceInteractionService, or, for a legacy one,
+    // as an activity answering ACTION_ASSIST.
+    private fun hasAssistant(context: Context): Boolean {
+        val configured =
+            Settings.Secure.getStringForUser(
+                context.contentResolver,
+                Settings.Secure.ASSISTANT,
+                UserHandle.USER_CURRENT,
+            )
+        if (!configured.isNullOrEmpty()) {
+            return true
+        }
+        return handles(context, Intent(Intent.ACTION_ASSIST))
+    }
 
     fun grantIntent(context: Context, action: Int): Intent? =
         when (action) {
@@ -225,6 +247,7 @@ class Actions(private val context: Context) {
             Action.LOCATION_ON -> setLocation(true)
             Action.LOCATION_OFF -> setLocation(false)
             Action.LAUNCH_CAMERA -> launch(Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA))
+            Action.LAUNCH_ASSISTANT -> launchAssist()
         }
     }
 
@@ -276,6 +299,14 @@ class Actions(private val context: Context) {
     private fun setLocation(enabled: Boolean) {
         val manager = locationManager ?: error("no location on this device")
         manager.setLocationEnabledForUser(enabled, UserHandle.of(ActivityManager.getCurrentUser()))
+    }
+
+    // An activity intent does not reach a VoiceInteractionService, and
+    // SearchManagerService drops the user it is given, so none is passed.
+    private fun launchAssist() {
+        val manager =
+            context.getSystemService(SearchManager::class.java) ?: error("no SearchManager")
+        manager.launchAssist(null)
     }
 
     // A package installed for the user the app is started for is not one

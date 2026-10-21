@@ -58,4 +58,5 @@
     <string name="action_location_on">Turn on location</string>
     <string name="action_location_off">Turn off location</string>
     <string name="action_launch_camera">Open camera</string>
+    <string name="action_launch_assistant">Open assistant</string>
 </resources>
