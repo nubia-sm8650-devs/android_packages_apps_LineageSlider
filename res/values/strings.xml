@@ -32,6 +32,9 @@
     <string name="position_title">Position %1$d</string>
     <string name="position_active">Active</string>
     <string name="position_action_title">Action</string>
+    <string name="position_app_title">App</string>
+    <string name="position_app_pick">Choose an app</string>
+    <string name="position_app_none">Not set</string>
 
     <string name="action_failed">Couldn\'t run “%1$s”</string>
     <string name="action_none">Do nothing</string>
@@ -61,6 +64,7 @@
     <string name="action_location_off">Turn off location</string>
     <string name="action_launch_camera">Open camera</string>
     <string name="action_launch_assistant">Open assistant</string>
+    <string name="action_launch_app">Open an app</string>
     <string name="action_media_pause">Pause media</string>
     <string name="action_media_play">Resume media</string>
     <string name="action_night_light_on">Turn on night light</string>

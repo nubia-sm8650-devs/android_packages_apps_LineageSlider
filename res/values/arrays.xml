@@ -36,6 +36,7 @@
         <item>@string/action_media_play</item>
         <item>@string/action_night_light_on</item>
         <item>@string/action_night_light_off</item>
+        <item>@string/action_launch_app</item>
     </string-array>
 
     <string-array name="action_values" translatable="false">
@@ -70,5 +71,6 @@
         <item>27</item>
         <item>28</item>
         <item>29</item>
+        <item>30</item>
     </string-array>
 </resources>

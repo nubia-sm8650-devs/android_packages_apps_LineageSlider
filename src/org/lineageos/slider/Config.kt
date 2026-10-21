@@ -37,6 +37,8 @@ class Config(
     fun customAction(position: Int): Int =
         string(keyPosition(position))?.toIntOrNull() ?: Action.NONE
 
+    fun target(position: Int): String? = string(keyTarget(position))
+
     fun actionForPosition(position: Int): Int {
         val preset = preset
         if (preset == Presets.CUSTOM) {
@@ -95,6 +97,8 @@ class Config(
         private const val KEY_PRESET = "preset"
 
         private fun keyPosition(position: Int) = "position_$position"
+
+        private fun keyTarget(position: Int) = "position_$position/app"
 
         // A malformed value is one a device seeded by hand, so it reads as no
         // configuration at all rather than taking the screen down with it.
