@@ -25,6 +25,7 @@ import android.os.Vibrator
 import android.telephony.TelephonyManager
 import android.util.Log
 import android.widget.Toast
+import com.android.internal.view.RotationPolicy
 
 object Action {
     const val NONE = -1
@@ -48,6 +49,8 @@ object Action {
     const val BLUETOOTH_OFF = 17
     const val MOBILE_DATA_ON = 18
     const val MOBILE_DATA_OFF = 19
+    const val AUTO_ROTATE_ON = 20
+    const val AUTO_ROTATE_OFF = 21
 
     // Actions that happen once rather than selecting a state. TORCH_ON is
     // one, since a flashlight lighting itself at boot is not a held state.
@@ -112,6 +115,9 @@ object Action {
         }
         if (action == VOICE_RECORD_START || action == VOICE_RECORD_STOP) {
             return VoiceRecorder.isAvailable(context)
+        }
+        if (action == AUTO_ROTATE_ON || action == AUTO_ROTATE_OFF) {
+            return RotationPolicy.isRotationSupported(context)
         }
         return true
     }
@@ -195,6 +201,8 @@ class Actions(private val context: Context) {
             Action.BLUETOOTH_OFF -> setBluetooth(false)
             Action.MOBILE_DATA_ON -> requireTelephony().setDataEnabled(true)
             Action.MOBILE_DATA_OFF -> requireTelephony().setDataEnabled(false)
+            Action.AUTO_ROTATE_ON -> setAutoRotate(true)
+            Action.AUTO_ROTATE_OFF -> setAutoRotate(false)
         }
     }
 
@@ -237,6 +245,10 @@ class Actions(private val context: Context) {
         if (!changed) {
             error("Bluetooth refused the change")
         }
+    }
+
+    private fun setAutoRotate(enabled: Boolean) {
+        RotationPolicy.setRotationLock(context, !enabled, TAG)
     }
 
     private val torchCameraId: String? by lazy {
