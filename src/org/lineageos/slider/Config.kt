@@ -7,6 +7,7 @@ package org.lineageos.slider
 
 import android.content.Context
 import android.os.UserHandle
+import androidx.preference.PreferenceDataStore
 import lineageos.providers.LineageSettings
 import org.json.JSONObject
 
@@ -55,6 +56,37 @@ class Config(
         string(suffix)?.toBooleanStrictOrNull() ?: defaultValue
 
     private fun name(suffix: String) = "$instance/$suffix"
+
+    // The process drawing the screen belongs to the user whose choices it
+    // edits, so a write lands in that user's copy of the setting.
+    class Store(context: Context) : PreferenceDataStore() {
+        private val resolver = context.contentResolver
+
+        override fun getString(key: String, defValue: String?): String? = values()[key] ?: defValue
+
+        override fun putString(key: String, value: String?) {
+            write(key, value)
+        }
+
+        override fun getBoolean(key: String, defValue: Boolean): Boolean =
+            values()[key]?.toBooleanStrictOrNull() ?: defValue
+
+        override fun putBoolean(key: String, value: Boolean) {
+            write(key, value.toString())
+        }
+
+        private fun values() = read(LineageSettings.System.getString(resolver, SETTING))
+
+        private fun write(key: String, value: String?) {
+            val values = values().toMutableMap()
+            if (value == null) {
+                values.remove(key)
+            } else {
+                values[key] = value
+            }
+            LineageSettings.System.putString(resolver, SETTING, JSONObject(values).toString())
+        }
+    }
 
     companion object {
         private val SETTING = LineageSettings.System.SLIDER_CONFIGURATION

@@ -28,10 +28,14 @@ class SliderInstance(
 
     @Volatile private var config: Config? = null
 
+    val currentPosition
+        get() = lastPosition
+
     private val callback =
         object : ISliderCallback.Stub() {
             override fun onPositionChanged(position: Int) {
                 lastPosition = position
+                app.onPositionChanged(name, position)
                 applyPosition(position)
             }
 
