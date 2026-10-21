@@ -16,6 +16,8 @@
         <item>@string/action_torch_off</item>
         <item>@string/action_battery_saver_on</item>
         <item>@string/action_battery_saver_off</item>
+        <item>@string/action_voice_record_start</item>
+        <item>@string/action_voice_record_stop</item>
     </string-array>
 
     <string-array name="action_values" translatable="false">
@@ -30,5 +32,7 @@
         <item>7</item>
         <item>8</item>
         <item>9</item>
+        <item>10</item>
+        <item>11</item>
     </string-array>
 </resources>

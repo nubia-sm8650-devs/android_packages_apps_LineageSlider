@@ -18,12 +18,14 @@ object Presets {
     const val ALARMS_ONLY = "alarms_only"
     const val FLASHLIGHT = "flashlight"
     const val BATTERY_SAVER = "battery_saver"
+    const val VOICE_RECORD = "voice_record"
     const val CUSTOM = "custom"
 
     private val LABELS =
         mapOf(
             FLASHLIGHT to R.string.preset_flashlight,
             BATTERY_SAVER to R.string.preset_battery_saver,
+            VOICE_RECORD to R.string.preset_voice_record,
             CUSTOM to R.string.preset_custom,
         )
 
@@ -89,10 +91,22 @@ object Presets {
         mapOf(
             FLASHLIGHT to toggle(count, Action.TORCH_OFF, Action.TORCH_ON),
             BATTERY_SAVER to toggle(count, Action.BATTERY_SAVER_OFF, Action.BATTERY_SAVER_ON),
+            VOICE_RECORD to pair(count, Action.VOICE_RECORD_STOP, Action.VOICE_RECORD_START),
         )
 
     // Repeating "off" has to be harmless, which holds for a state but not for
     // a one-shot.
     private fun toggle(count: Int, off: Int, on: Int): IntArray =
         IntArray(count) { if (it == count - 1) on else off }
+
+    // The rest stay idle, so a one-shot never fires twice on the way between
+    // the two ends.
+    private fun pair(count: Int, off: Int, on: Int): IntArray =
+        IntArray(count) {
+            when (it) {
+                count - 1 -> on
+                0 -> off
+                else -> Action.NONE
+            }
+        }
 }

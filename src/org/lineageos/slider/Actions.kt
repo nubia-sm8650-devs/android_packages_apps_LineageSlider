@@ -8,6 +8,7 @@ package org.lineageos.slider
 import android.app.ActivityManager
 import android.app.NotificationManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
@@ -33,10 +34,12 @@ object Action {
     const val TORCH_OFF = 7
     const val BATTERY_SAVER_ON = 8
     const val BATTERY_SAVER_OFF = 9
+    const val VOICE_RECORD_START = 10
+    const val VOICE_RECORD_STOP = 11
 
     // Actions that happen once rather than selecting a state. TORCH_ON is
     // one, since a flashlight lighting itself at boot is not a held state.
-    private val ONE_SHOT = setOf(TORCH_ON)
+    private val ONE_SHOT = setOf(TORCH_ON, VOICE_RECORD_START, VOICE_RECORD_STOP)
 
     fun isStateful(action: Int) = action !in ONE_SHOT
 
@@ -63,6 +66,8 @@ object Action {
         when (action) {
             TORCH_ON,
             TORCH_OFF -> PackageManager.FEATURE_CAMERA_FLASH
+            VOICE_RECORD_START,
+            VOICE_RECORD_STOP -> PackageManager.FEATURE_MICROPHONE
             else -> null
         }
 
@@ -79,8 +84,18 @@ object Action {
         if (action == VIBRATE) {
             return context.getSystemService(Vibrator::class.java)?.hasVibrator() == true
         }
+        if (action == VOICE_RECORD_START || action == VOICE_RECORD_STOP) {
+            return VoiceRecorder.isAvailable(context)
+        }
         return true
     }
+
+    fun grantIntent(context: Context, action: Int): Intent? =
+        when (action) {
+            VOICE_RECORD_START,
+            VOICE_RECORD_STOP -> VoiceRecorder.grantIntent(context)
+            else -> null
+        }
 
     fun label(context: Context, action: Int): String? {
         val values = context.resources.getStringArray(R.array.action_values)
@@ -98,6 +113,7 @@ class Actions(private val context: Context) {
     private val notificationManager = context.getSystemService(NotificationManager::class.java)!!
     private val powerManager = context.getSystemService(PowerManager::class.java)!!
     private val cameraManager = context.getSystemService(CameraManager::class.java)
+    private val voiceRecorder = VoiceRecorder(context)
     private val handler = Handler(Looper.getMainLooper())
 
     fun apply(action: Int) {
@@ -139,6 +155,8 @@ class Actions(private val context: Context) {
             Action.TORCH_OFF -> setTorch(false)
             Action.BATTERY_SAVER_ON -> powerManager.setPowerSaveModeEnabled(true)
             Action.BATTERY_SAVER_OFF -> powerManager.setPowerSaveModeEnabled(false)
+            Action.VOICE_RECORD_START -> voiceRecorder.start()
+            Action.VOICE_RECORD_STOP -> voiceRecorder.stop()
         }
     }
 
