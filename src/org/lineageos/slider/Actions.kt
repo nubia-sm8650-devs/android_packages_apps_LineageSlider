@@ -13,6 +13,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
+import android.location.LocationManager
 import android.media.AudioManager
 import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
@@ -51,6 +52,8 @@ object Action {
     const val MOBILE_DATA_OFF = 19
     const val AUTO_ROTATE_ON = 20
     const val AUTO_ROTATE_OFF = 21
+    const val LOCATION_ON = 22
+    const val LOCATION_OFF = 23
 
     // Actions that happen once rather than selecting a state. TORCH_ON is
     // one, since a flashlight lighting itself at boot is not a held state.
@@ -73,6 +76,8 @@ object Action {
             BLUETOOTH_OFF -> UserManager.DISALLOW_CONFIG_BLUETOOTH
             MOBILE_DATA_ON,
             MOBILE_DATA_OFF -> UserManager.DISALLOW_CONFIG_MOBILE_NETWORKS
+            LOCATION_ON,
+            LOCATION_OFF -> UserManager.DISALLOW_CONFIG_LOCATION
             else -> null
         }
 
@@ -97,6 +102,8 @@ object Action {
             BLUETOOTH_OFF -> PackageManager.FEATURE_BLUETOOTH
             MOBILE_DATA_ON,
             MOBILE_DATA_OFF -> PackageManager.FEATURE_TELEPHONY_DATA
+            LOCATION_ON,
+            LOCATION_OFF -> PackageManager.FEATURE_LOCATION
             else -> null
         }
 
@@ -146,6 +153,7 @@ class Actions(private val context: Context) {
     private val powerManager = context.getSystemService(PowerManager::class.java)!!
     private val cameraManager = context.getSystemService(CameraManager::class.java)
     private val wifiManager = context.getSystemService(WifiManager::class.java)
+    private val locationManager = context.getSystemService(LocationManager::class.java)
     private val telephonyManager = context.getSystemService(TelephonyManager::class.java)
     private val connectivityManager = context.getSystemService(ConnectivityManager::class.java)
     private val bluetoothAdapter = context.getSystemService(BluetoothManager::class.java)?.adapter
@@ -203,6 +211,8 @@ class Actions(private val context: Context) {
             Action.MOBILE_DATA_OFF -> requireTelephony().setDataEnabled(false)
             Action.AUTO_ROTATE_ON -> setAutoRotate(true)
             Action.AUTO_ROTATE_OFF -> setAutoRotate(false)
+            Action.LOCATION_ON -> setLocation(true)
+            Action.LOCATION_OFF -> setLocation(false)
         }
     }
 
@@ -249,6 +259,11 @@ class Actions(private val context: Context) {
 
     private fun setAutoRotate(enabled: Boolean) {
         RotationPolicy.setRotationLock(context, !enabled, TAG)
+    }
+
+    private fun setLocation(enabled: Boolean) {
+        val manager = locationManager ?: error("no location on this device")
+        manager.setLocationEnabledForUser(enabled, UserHandle.of(ActivityManager.getCurrentUser()))
     }
 
     private val torchCameraId: String? by lazy {

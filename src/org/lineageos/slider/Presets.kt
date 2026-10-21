@@ -24,6 +24,7 @@ object Presets {
     const val BLUETOOTH = "bluetooth"
     const val MOBILE_DATA = "mobile_data"
     const val AUTO_ROTATE = "auto_rotate"
+    const val LOCATION = "location"
     const val CUSTOM = "custom"
 
     private val LABELS =
@@ -36,6 +37,7 @@ object Presets {
             BLUETOOTH to R.string.preset_bluetooth,
             MOBILE_DATA to R.string.preset_mobile_data,
             AUTO_ROTATE to R.string.preset_auto_rotate,
+            LOCATION to R.string.preset_location,
             CUSTOM to R.string.preset_custom,
         )
 
@@ -107,6 +109,7 @@ object Presets {
             BLUETOOTH to toggle(count, Action.BLUETOOTH_OFF, Action.BLUETOOTH_ON),
             MOBILE_DATA to toggle(count, Action.MOBILE_DATA_OFF, Action.MOBILE_DATA_ON),
             AUTO_ROTATE to toggle(count, Action.AUTO_ROTATE_OFF, Action.AUTO_ROTATE_ON),
+            LOCATION to toggle(count, Action.LOCATION_OFF, Action.LOCATION_ON),
         )
 
     // Repeating "off" has to be harmless, which holds for a state but not for
