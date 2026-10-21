@@ -11,6 +11,8 @@
     <string name="slider_enabled_right">Use right slider</string>
     <string name="slider_enabled_bottom">Use bottom slider</string>
     <string name="slider_enabled_numbered">Use slider %1$d</string>
+    <string name="slider_show_dialog">Show an on-screen indicator</string>
+    <string name="slider_indicator_target">%1$s (%2$s)</string>
 
     <string name="preset_title">Preset</string>
     <string name="preset_flashlight">Flashlight</string>

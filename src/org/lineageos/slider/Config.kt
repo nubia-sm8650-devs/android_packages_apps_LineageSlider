@@ -23,6 +23,9 @@ class Config(
     val enabled: Boolean
         get() = boolean(KEY_ENABLED, true)
 
+    val showDialog: Boolean
+        get() = boolean(KEY_SHOW_DIALOG, true)
+
     // A preset stored for a different position count has no table at this
     // one, and reading it back as itself would leave every position idle.
     val preset: String
@@ -108,6 +111,7 @@ class Config(
 
         private const val KEY_ENABLED = "enabled"
         private const val KEY_PRESET = "preset"
+        private const val KEY_SHOW_DIALOG = "show_dialog"
 
         private fun keyPosition(position: Int) = "position_$position"
 
