@@ -16,9 +16,11 @@ object Presets {
     const val DND = "dnd"
     const val TOTAL_SILENCE = "total_silence"
     const val ALARMS_ONLY = "alarms_only"
+    const val FLASHLIGHT = "flashlight"
     const val CUSTOM = "custom"
 
-    private val LABELS = mapOf(CUSTOM to R.string.preset_custom)
+    private val LABELS =
+        mapOf(FLASHLIGHT to R.string.preset_flashlight, CUSTOM to R.string.preset_custom)
 
     fun table(preset: String, count: Int): IntArray? =
         if (preset == CUSTOM) null else tables(count)[preset]
@@ -56,7 +58,8 @@ object Presets {
         return if (actions.all { Action.isAvailable(context, it) }) id else CUSTOM
     }
 
-    private fun tables(count: Int): Map<String, IntArray> = soundPresets(count)
+    private fun tables(count: Int): Map<String, IntArray> =
+        soundPresets(count) + featurePresets(count)
 
     private fun soundPresets(count: Int): Map<String, IntArray> =
         when (count) {
@@ -76,4 +79,10 @@ object Presets {
                 )
             else -> emptyMap()
         }
+
+    private fun featurePresets(count: Int): Map<String, IntArray> =
+        mapOf(FLASHLIGHT to toggle(count, Action.TORCH_OFF, Action.TORCH_ON))
+
+    private fun toggle(count: Int, off: Int, on: Int): IntArray =
+        IntArray(count) { if (it == count - 1) on else off }
 }
